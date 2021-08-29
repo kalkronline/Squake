@@ -8,7 +8,7 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
-import squeek.quakemovement.ModConfig;
+import squeek.quakemovement.Config;
 import squeek.quakemovement.QuakeClientPlayer;
 import squeek.quakemovement.QuakeServerPlayer;
 
@@ -16,9 +16,8 @@ import squeek.quakemovement.QuakeServerPlayer;
 public abstract class PlayerEntityMixin
 {
 	@Inject(at = @At("HEAD"), method = "travel(Lnet/minecraft/util/math/Vec3d;)V", cancellable = true)
-	private void travel(Vec3d movementInput, CallbackInfo info)
-	{
-		if (!ModConfig.ENABLED)
+	private void travel(Vec3d movementInput, CallbackInfo info) {
+		if (!Config.ENABLED)
 			return;
 
 		if (QuakeClientPlayer.travel((PlayerEntity) (Object) this, movementInput))

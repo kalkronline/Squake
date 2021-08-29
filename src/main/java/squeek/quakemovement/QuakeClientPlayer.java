@@ -7,17 +7,12 @@ import net.minecraft.entity.Entity;
 import net.minecraft.entity.MovementType;
 import net.minecraft.entity.effect.StatusEffects;
 import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.fluid.Fluid;
 import net.minecraft.fluid.FluidState;
 import net.minecraft.particle.BlockStateParticleEffect;
 import net.minecraft.particle.ParticleTypes;
-import net.minecraft.tag.FluidTags;
-import net.minecraft.tag.Tag;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Box;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec3d;
-import net.minecraft.world.WorldView;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -33,7 +28,7 @@ public class QuakeClientPlayer
 		if (!player.world.isClient)
 			return false;
 
-		if (!ModConfig.ENABLED)
+		if (!Config.ENABLED)
 			return false;
 
 		boolean didQuakeMovement;
@@ -76,16 +71,14 @@ public class QuakeClientPlayer
 		return player.isTouchingWater() && player.shouldSwimInFluids() && !player.canWalkOnFluid(fluidState.getFluid());
 	}
 
-	public static boolean updateVelocityPlayer(PlayerEntity player, Vec3d movementInput, float movementSpeed)
-	{
+	public static boolean updateVelocityPlayer(PlayerEntity player, Vec3d movementInput, float movementSpeed) {
 		if (!player.world.isClient)
 			return false;
 
-		if (!ModConfig.ENABLED)
+		if (!Config.ENABLED)
 			return false;
 
-		if ((player.getAbilities().flying && !player.hasVehicle()) || isInWater(player) || player.isInLava() || !player.getAbilities().flying)
-		{
+		if ((player.getAbilities().flying && !player.hasVehicle()) || isInWater(player) || player.isInLava() || !player.getAbilities().flying) {
 			return false;
 		}
 
@@ -99,17 +92,15 @@ public class QuakeClientPlayer
 		return true;
 	}
 
-	public static void afterJump(PlayerEntity player)
-	{
+	public static void afterJump(PlayerEntity player) {
 		if (!player.world.isClient)
 			return;
 
-		if (!ModConfig.ENABLED)
+		if (!Config.ENABLED)
 			return;
 
 		// undo this dumb thing
-		if (player.isSprinting())
-		{
+		if (player.isSprinting()) {
 			float f = player.headYaw * 0.017453292F;
 			Vec3d deltaVelocity = new Vec3d(MathHelper.sin(f) * 0.2F, 0, -(MathHelper.cos(f) * 0.2F));
 			player.setVelocity(player.getVelocity().add(deltaVelocity));
@@ -362,21 +353,20 @@ public class QuakeClientPlayer
 		{
 			return false;
 		}
-		else if (isInWater(player))
-		{
-			if (ModConfig.SHARKING_ENABLED)
-			{
-				// fall back to Minecraft movement when we're not sharking
-				if (!quake_WaterMove(player, (float) movementInput.x, (float) movementInput.y, (float) movementInput.z))
-				{
-					System.out.println("actually falling back");
-					return false;
-				}
-			}
-			else
-			{
-				return false;
-			}
+		else if (isInWater(player)) {
+//			if (Config.SHARKING_ENABLED)
+//			{
+//				// fall back to Minecraft movement when we're not sharking
+//				if (!quake_WaterMove(player, (float) movementInput.x, (float) movementInput.y, (float) movementInput.z))
+//				{
+//					System.out.println("actually falling back");
+//					return false;
+//				}
+//			}
+//			else
+//			{
+			return false;
+//			}
 		}
 		else
 		{
@@ -387,16 +377,14 @@ public class QuakeClientPlayer
 			float momentumRetention = getSlipperiness(player);
 
 			// ground movement
-			if (onGroundForReal)
-			{
+			if (onGroundForReal) {
 				// apply friction before acceleration so we can accelerate back up to maxspeed afterwards
 				//quake_Friction(); // buggy because material-based friction uses a totally different format
 				minecraft_ApplyFriction(player, momentumRetention);
 
-				double sv_accelerate = ModConfig.ACCELERATE;
+				double sv_accelerate = Config.ACCELERATE;
 
-				if (wishspeed != 0.0F)
-				{
+				if (wishspeed != 0.0F) {
 					// alter based on the surface friction
 					sv_accelerate *= minecraft_getMoveSpeed(player) * 2.15F / wishspeed;
 
@@ -414,19 +402,18 @@ public class QuakeClientPlayer
 				}
 			}
 			// air movement
-			else
-			{
-				double sv_airaccelerate = ModConfig.AIR_ACCELERATE;
+			else {
+				double sv_airaccelerate = Config.AIR_ACCELERATE;
 				quake_AirAccelerate(player, wishspeed, wishdir[0], wishdir[1], sv_airaccelerate);
 
-				if (ModConfig.SHARKING_ENABLED && ModConfig.SHARKING_SURFACE_TENSION > 0.0D && isJumping(player) && player.getVelocity().y < 0.0F)
-				{
-					Box axisalignedbb = player.getBoundingBox().offset(player.getVelocity());
-					boolean isFallingIntoWater = containsFluid(player.world, axisalignedbb, FluidTags.WATER);
-
-					if (isFallingIntoWater)
-						player.setVelocity(player.getVelocity().multiply(1.0D, ModConfig.SHARKING_SURFACE_TENSION, 1.0D));
-				}
+//				if (Config.SHARKING_ENABLED && Config.SHARKING_SURFACE_TENSION > 0.0D && isJumping(player) && player.getVelocity().y < 0.0F)
+//				{
+//					Box axisalignedbb = player.getBoundingBox().offset(player.getVelocity());
+//					boolean isFallingIntoWater = containsFluid(player.world, axisalignedbb, FluidTags.WATER);
+//
+//					if (isFallingIntoWater)
+//						player.setVelocity(player.getVelocity().multiply(1.0D, Config.SHARKING_SURFACE_TENSION, 1.0D));
+//				}
 			}
 
 			// apply velocity
@@ -442,59 +429,53 @@ public class QuakeClientPlayer
 		return true;
 	}
 
-	// copied from WorldView.containsFluid but with the ability to specify the fluid
-	static private boolean containsFluid(WorldView world, Box box, Tag<Fluid> tag) {
-		int i = MathHelper.floor(box.minX);
-		int j = MathHelper.ceil(box.maxX);
-		int k = MathHelper.floor(box.minY);
-		int l = MathHelper.ceil(box.maxY);
-		int m = MathHelper.floor(box.minZ);
-		int n = MathHelper.ceil(box.maxZ);
-		BlockPos.Mutable mutable = new BlockPos.Mutable();
+//	// copied from WorldView.containsFluid but with the ability to specify the fluid
+//	static private boolean containsFluid(WorldView world, Box box, Tag<Fluid> tag) {
+//		int i = MathHelper.floor(box.minX);
+//		int j = MathHelper.ceil(box.maxX);
+//		int k = MathHelper.floor(box.minY);
+//		int l = MathHelper.ceil(box.maxY);
+//		int m = MathHelper.floor(box.minZ);
+//		int n = MathHelper.ceil(box.maxZ);
+//		BlockPos.Mutable mutable = new BlockPos.Mutable();
+//
+//		for(int o = i; o < j; ++o) {
+//			for(int p = k; p < l; ++p) {
+//				for(int q = m; q < n; ++q) {
+//					BlockState blockState = world.getBlockState(mutable.set(o, p, q));
+//					if (blockState.getFluidState().isIn(tag)) {
+//						return true;
+//					}
+//				}
+//			}
+//		}
+//
+//		return false;
+//	}
 
-		for(int o = i; o < j; ++o) {
-			for(int p = k; p < l; ++p) {
-				for(int q = m; q < n; ++q) {
-					BlockState blockState = world.getBlockState(mutable.set(o, p, q));
-					if (blockState.getFluidState().isIn(tag)) {
-						return true;
-					}
-				}
-			}
-		}
-
-		return false;
-	}
-
-	private static void quake_Jump(PlayerEntity player)
-	{
+	private static void quake_Jump(PlayerEntity player) {
 		quake_ApplySoftCap(player, quake_getMaxMoveSpeed(player));
 
 		boolean didTrimp = quake_DoTrimp(player);
 
-		if (!didTrimp)
-		{
+		if (!didTrimp) {
 			quake_ApplyHardCap(player, quake_getMaxMoveSpeed(player));
 		}
 	}
 
-	private static boolean quake_DoTrimp(PlayerEntity player)
-	{
-		if (ModConfig.TRIMPING_ENABLED && player.isSneaking())
-		{
+	private static boolean quake_DoTrimp(PlayerEntity player) {
+		if (Config.TRIMPING_ENABLED && player.isSneaking()) {
 			double curspeed = getSpeed(player);
 			float movespeed = quake_getMaxMoveSpeed(player);
-			if (curspeed > movespeed)
-			{
+			if (curspeed > movespeed) {
 				double speedbonus = curspeed / movespeed * 0.5F;
 				if (speedbonus > 1.0F)
 					speedbonus = 1.0F;
 
-				player.setVelocity(player.getVelocity().add(0, speedbonus * curspeed * ModConfig.TRIMP_MULTIPLIER, 0));
+				player.setVelocity(player.getVelocity().add(0, speedbonus * curspeed * Config.TRIMP_MULTIPLIER, 0));
 
-				if (ModConfig.TRIMP_MULTIPLIER > 0)
-				{
-					float mult = 1.0f / ModConfig.TRIMP_MULTIPLIER;
+				if (Config.TRIMP_MULTIPLIER > 0) {
+					float mult = 1.0f / (float) Config.TRIMP_MULTIPLIER;
 					player.setVelocity(player.getVelocity().multiply(mult, 1, mult));
 				}
 
@@ -553,58 +534,58 @@ public class QuakeClientPlayer
 		}
 	}
 
-	private static boolean quake_WaterMove(PlayerEntity player, float sidemove, float upmove, float forwardmove)
-	{
-		double lastPosY = player.getY();
-
-		// get all relevant movement values
-		float wishspeed = (sidemove != 0.0F || forwardmove != 0.0F) ? quake_getMaxMoveSpeed(player) : 0.0F;
-		double[] wishdir = getMovementDirection(player, sidemove, forwardmove);
-		boolean isOffsetInLiquid = player.world.getBlockState(new BlockPos(player.getX(), player.getY() + 1.0D, player.getZ())).getFluidState().isEmpty();
-		boolean isSharking = isJumping(player) && isOffsetInLiquid;
-		double curspeed = getSpeed(player);
-
-		if (!isSharking || curspeed < 0.078F)
-		{
-			System.out.println("not sharking, falling back to minecraft");
-			// fallback to Minecraft default movement
-			return false;
-		}
-		else
-		{
-			System.out.println("sharking");
-
-			if (curspeed > 0.09)
-				quake_ApplyWaterFriction(player, ModConfig.SHARKING_WATER_FRICTION);
-
-			if (curspeed > 0.098)
-				quake_AirAccelerate(player, wishspeed, wishdir[0], wishdir[1], ModConfig.ACCELERATE);
-			else
-				quake_Accelerate(player, .0980F, wishdir[0], wishdir[1], ModConfig.ACCELERATE);
-
-			player.move(MovementType.SELF, player.getVelocity());
-
-			player.setVelocity(player.getVelocity().x, 0, player.getVelocity().z);
-		}
-
-		// water jump
-		if (player.horizontalCollision && player.doesNotCollide(player.getVelocity().x, player.getVelocity().y + 0.6000000238418579D - player.getY() + lastPosY, player.getVelocity().z))
-		{
-			player.setVelocity(player.getVelocity().x, 0.30000001192092896D, player.getVelocity().z);
-		}
-
-		if (!baseVelocities.isEmpty())
-		{
-			System.out.println("has a base velocity");
-			float speedMod = wishspeed / quake_getMaxMoveSpeed(player);
-			// add in base velocities
-			for (double[] baseVel : baseVelocities)
-			{
-				player.setVelocity(player.getVelocity().add(baseVel[0] * speedMod, 0, baseVel[1] * speedMod));
-			}
-		}
-
-		return true;
+	private static boolean quake_WaterMove(PlayerEntity player, float sidemove, float upmove, float forwardmove) {
+		return false;
+//		double lastPosY = player.getY();
+//
+//		// get all relevant movement values
+//		float wishspeed = (sidemove != 0.0F || forwardmove != 0.0F) ? quake_getMaxMoveSpeed(player) : 0.0F;
+//		double[] wishdir = getMovementDirection(player, sidemove, forwardmove);
+//		boolean isOffsetInLiquid = player.world.getBlockState(new BlockPos(player.getX(), player.getY() + 1.0D, player.getZ())).getFluidState().isEmpty();
+//		boolean isSharking = isJumping(player) && isOffsetInLiquid;
+//		double curspeed = getSpeed(player);
+//
+//		if (!isSharking || curspeed < 0.078F)
+//		{
+//			System.out.println("not sharking, falling back to minecraft");
+//			// fallback to Minecraft default movement
+//			return false;
+//		}
+//		else
+//		{
+//			System.out.println("sharking");
+//
+//			if (curspeed > 0.09)
+//				quake_ApplyWaterFriction(player, Config.SHARKING_WATER_FRICTION);
+//
+//			if (curspeed > 0.098)
+//				quake_AirAccelerate(player, wishspeed, wishdir[0], wishdir[1], Config.ACCELERATE);
+//			else
+//				quake_Accelerate(player, .0980F, wishdir[0], wishdir[1], Config.ACCELERATE);
+//
+//			player.move(MovementType.SELF, player.getVelocity());
+//
+//			player.setVelocity(player.getVelocity().x, 0, player.getVelocity().z);
+//		}
+//
+//		// water jump
+//		if (player.horizontalCollision && player.doesNotCollide(player.getVelocity().x, player.getVelocity().y + 0.6000000238418579D - player.getY() + lastPosY, player.getVelocity().z))
+//		{
+//			player.setVelocity(player.getVelocity().x, 0.30000001192092896D, player.getVelocity().z);
+//		}
+//
+//		if (!baseVelocities.isEmpty())
+//		{
+//			System.out.println("has a base velocity");
+//			float speedMod = wishspeed / quake_getMaxMoveSpeed(player);
+//			// add in base velocities
+//			for (double[] baseVel : baseVelocities)
+//			{
+//				player.setVelocity(player.getVelocity().add(baseVel[0] * speedMod, 0, baseVel[1] * speedMod));
+//			}
+//		}
+//
+//		return true;
 	}
 
 	private static void quake_Accelerate(PlayerEntity player, float wishspeed, double wishX, double wishZ, double accel)
@@ -633,12 +614,11 @@ public class QuakeClientPlayer
 		player.setVelocity(player.getVelocity().add(accelspeed * wishX, 0, accelspeed * wishZ));
 	}
 
-	private static void quake_AirAccelerate(PlayerEntity player, float wishspeed, double wishX, double wishZ, double accel)
-	{
+	private static void quake_AirAccelerate(PlayerEntity player, float wishspeed, double wishX, double wishZ, double accel) {
 		double addspeed, accelspeed, currentspeed;
 
 		float wishspd = wishspeed;
-		float maxAirAcceleration = (float) ModConfig.MAX_AIR_ACCEL_PER_TICK;
+		float maxAirAcceleration = (float) Config.MAX_AIR_ACCEL_PER_TICK;
 
 		if (wishspd > maxAirAcceleration)
 			wishspd = maxAirAcceleration;
@@ -712,13 +692,11 @@ public class QuakeClientPlayer
 		}
 	}
 
-	private static void quake_ApplySoftCap(PlayerEntity player, float movespeed)
-	{
-		float softCapPercent = ModConfig.SOFT_CAP;
-		float softCapDegen = ModConfig.SOFT_CAP_DEGEN;
+	private static void quake_ApplySoftCap(PlayerEntity player, float movespeed) {
+		float softCapPercent = (float) Config.SOFTCAP;
+		float softCapDegen = (float) Config.SOFTCAP_DECAY;
 
-		if (ModConfig.UNCAPPED_BUNNYHOP_ENABLED)
-		{
+		if (!Config.ENFORCE_CAP) {
 			softCapPercent = 1.0F;
 			softCapDegen = 1.0F;
 		}
@@ -740,18 +718,16 @@ public class QuakeClientPlayer
 		}
 	}
 
-	private static void quake_ApplyHardCap(PlayerEntity player, float movespeed)
-	{
-		if (ModConfig.UNCAPPED_BUNNYHOP_ENABLED)
+	private static void quake_ApplyHardCap(PlayerEntity player, float movespeed) {
+		if (!Config.ENFORCE_CAP)
 			return;
 
-		float hardCapPercent = ModConfig.HARD_CAP;
+		float hardCapPercent = (float) Config.HARDCAP;
 
 		float speed = (float) (getSpeed(player));
 		float hardCap = movespeed * hardCapPercent;
 
-		if (speed > hardCap && hardCap != 0.0F)
-		{
+		if (speed > hardCap && hardCap != 0.0F) {
 			float multi = hardCap / speed;
 			player.setVelocity(player.getVelocity().multiply(multi, 1, multi));
 

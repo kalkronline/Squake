@@ -1,6 +1,5 @@
 package squeek.quakemovement;
 
-import com.mojang.blaze3d.platform.GlStateManager;
 import net.fabricmc.api.ModInitializer;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.util.math.MatrixStack;
@@ -9,9 +8,10 @@ import net.minecraft.util.math.MathHelper;
 
 public class ModQuakeMovement implements ModInitializer
 {
+
 	@Override
-	public void onInitialize()
-	{
+	public void onInitialize() {
+		SimpleConfig.load(Config.class);
 	}
 
 	public static float getFriction()

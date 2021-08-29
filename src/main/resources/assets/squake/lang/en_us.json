@@ -1,0 +1,29 @@
+{
+    "category.squake.binds": "Squake",
+
+    "category.squake.general": "General",
+    "config.squake.enabled": "Enable Movement System",
+
+    "category.squake.trimp": "Trimping",
+    "config.squake.trimping.enabled": "Enable Trimping",
+    "config.squake.trimp.multiplier": "Magic Trimp Factor",
+
+    "category.squake.caps": "Movement Caps",
+    "config.squake.enforce.cap": "Enforce Caps",
+    "config.squake.hardcap": "Hard Cap Percentage",
+    "config.squake.softcap": "Soft Cap Percentage",
+    "config.squake.softcap.decay": "Soft Cap Decay",
+
+    "category.squake.acceleration": "Acceleration",
+    "config.squake.accelerate": "Acceleration Value",
+    "config.squake.air.accelerate": "Air Acceleration Value",
+    "config.squake.max.air.accel.per.tick": "Maximum Air Acceleration per Tick",
+
+    "gui.save": "Save to File",
+    "gui.true": "True",
+    "gui.false": "False",
+
+    "key.squake.enable": "Toggle Movement",
+    "key.squake.toggleon": "Movement system enabled",
+    "key.squake.toggleoff": "Movement system disabled"
+}
